@@ -24,7 +24,7 @@ const Home = () => {
           Welcome to AgriSolutions
         </Typography>
         <Typography variant="h5" align="center" sx={{ mb: 4 }}>
-          Your one-stop solution for crop yield detection and agriculture management.
+          Your one-stop solution for crop yield detection and agriculture management and Fertilizer Recommendation.
         </Typography>
         <Button
           variant="contained"
