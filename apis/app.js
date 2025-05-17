@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const mlRoutes = require('./routes/mlRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -24,10 +25,11 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/ml', mlRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.send('MERN Auth API is running!');
+  res.send('AgriSolutions API is running!');
 });
 
 // Error handling middleware
