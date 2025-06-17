@@ -1,5 +1,5 @@
 const express = require('express');
-const { predictCropRecommendation } = require('../controllers/cropController');
+const { predictYieldEstimation } = require('../controllers/yieldController');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -9,9 +9,9 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/crop/recommend:
+ * /api/yield/estimate:
  *   post:
- *     summary: Predict crop recommendation
+ *     summary: Predict crop yield
 //  *     security:
 //  *       - BearerAuth: []
  *     requestBody:
@@ -21,24 +21,22 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               N:
+ *               Year:
  *                 type: number
- *               P:
+ *               average_rain_fall_mm_per_year:
  *                 type: number
- *               K:
+ *               pesticides_tonnes:
  *                 type: number
- *               temperature:
+ *               avg_temp:
  *                 type: number
- *               humidity:
- *                 type: number
- *               ph:
- *                 type: number
- *               rainfall:
- *                 type: number
+ *               Area:
+ *                 type: string
+ *               Item:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Crop recommendation predicted successfully
+ *         description: Crop yield predicted successfully
  */
-router.post('/recommend', predictCropRecommendation);
+router.post('/estimate', predictYieldEstimation);
 
 module.exports = router;

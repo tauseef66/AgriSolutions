@@ -5,6 +5,8 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger/swagger');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const yieldRoutes =require('./routes/yieldRoutes')
+const cropRoutes =require('./routes/cropRoutes')
 require('dotenv').config();
 
 const app = express();
@@ -24,7 +26,8 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-
+app.use('/api', yieldRoutes);
+app.use('/api', cropRoutes);
 // Default route
 app.get('/', (req, res) => {
   res.send('MERN Auth API is running!');
