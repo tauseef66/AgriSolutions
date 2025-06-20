@@ -12,8 +12,6 @@ const router = express.Router();
  * /api/crop/recommend:
  *   post:
  *     summary: Predict crop recommendation
-//  *     security:
-//  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
