@@ -1,4 +1,3 @@
-
 const { PythonShell } = require('python-shell');
 const path = require('path');
 const fs = require('fs');
@@ -24,7 +23,7 @@ const predictFertilizer = async (inputData) => {
     }
   }
 
-  const scriptPath = path.resolve(__dirname, '../../models/crop recommendation');
+  const scriptPath = path.resolve(__dirname, '../../models/fertilizer recommendation system');
   console.log('[FERTILIZER SERVICE] Resolved script path:', scriptPath);
 
   const scriptFile = path.join(scriptPath, 'predict_fertilizer.py');
