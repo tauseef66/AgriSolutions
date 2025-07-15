@@ -1,6 +1,6 @@
 const express = require('express');
 const { predictYieldEstimation } = require('../controllers/yieldController');
-const authMiddleware = require('../middleware/auth');
+// const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -12,8 +12,6 @@ const router = express.Router();
  * /api/yield/estimate:
  *   post:
  *     summary: Predict crop yield
-//  *     security:
-//  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
