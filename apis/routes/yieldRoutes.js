@@ -1,13 +1,10 @@
 const express = require('express');
-const { predictYieldEstimation } = require('../controllers/yieldController');
-const authMiddleware = require('../middleware/auth');
-
 const router = express.Router();
-
+const { predictYieldRecommendation } = require('../controllers/yieldController');
 
 /**
  * @swagger
- * /api/yield/estimate:
+ * /api/yield/predict:
  *   post:
  *     summary: Predict crop yield
  *     requestBody:
@@ -17,22 +14,64 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               Year:
+ *               N:
  *                 type: number
- *               average_rain_fall_mm_per_year:
+ *               P:
  *                 type: number
- *               pesticides_tonnes:
+ *               K:
  *                 type: number
- *               avg_temp:
+ *               temperature:
  *                 type: number
- *               Area:
- *                 type: string
- *               Item:
- *                 type: string
+ *               humidity:
+ *                 type: number
+ *               rainfall:
+ *                 type: number
+ *               area:
+ *                 type: number
  *     responses:
  *       200:
  *         description: Crop yield predicted successfully
  */
-router.post('/estimate', predictYieldEstimation);
+router.post('/predict', predictYieldRecommendation);
 
 module.exports = router;
+
+// // Version with authentication middleware
+// const express = require('express');
+// const router = express.Router();
+// const { predictYieldRecommendation } = require('../controllers/yieldController');
+// const authMiddleware = require('../middleware/auth');
+//
+// /**
+//  * @swagger
+//  * /api/yield/predict:
+//  *   post:
+//  *     summary: Predict crop yield
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             type: object
+//  *             properties:
+//  *               N:
+//  *                 type: number
+//  *               P:
+//  *                 type: number
+//  *               K:
+//  *                 type: number
+//  *               temperature:
+//  *                 type: number
+//  *               humidity:
+//  *                 type: number
+//  *               rainfall:
+//  *                 type: number
+//  *               area:
+//  *                 type: number
+//  *     responses:
+//  *       200:
+//  *         description: Crop yield predicted successfully
+//  */
+// router.post('/predict', authMiddleware, predictYieldRecommendation);
+//
+// module.exports = router;
