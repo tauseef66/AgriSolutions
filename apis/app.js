@@ -8,6 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 const yieldRoutes =require('./routes/yieldRoutes')
 const cropRoutes =require('./routes/cropRoutes')
 const fertilizerRoutes =require('./routes/fertilizerRoutes')
+const predictionRoutes = require('./routes/predictionRoute');
+const reviewRoutes = require('./routes/reviewRoute');
 require('dotenv').config();
 
 const app = express();
@@ -30,6 +32,8 @@ app.use('/api/user', userRoutes);
 app.use('/api', yieldRoutes);
 app.use('/api', cropRoutes);
 app.use('/api', fertilizerRoutes);
+app.use('/api/predictions', predictionRoutes);
+app.use('/api/reviews', reviewRoutes);
 // Default route
 app.get('/', (req, res) => {
   res.send('MERN Auth API is running!');
