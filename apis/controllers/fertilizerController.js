@@ -4,10 +4,8 @@ const Prediction = require('../models/prediction');
 const predictFertilizerRecommendation = async (req, res) => {
   try {
     const inputData = req.body;
-    if (!req.user) {
-      throw new Error('Authentication required');
-    }
     const userId = req.user.id;
+
     const result = await predictFertilizer(inputData);
     
     const prediction = new Prediction({

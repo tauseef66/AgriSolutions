@@ -8,6 +8,7 @@ const predictYieldRecommendation = async (req, res) => {
       throw new Error('Authentication required');
     }
     const userId = req.user.id;
+
     const result = await predictYield(inputData);
     
     const prediction = new Prediction({

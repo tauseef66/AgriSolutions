@@ -8,6 +8,7 @@ const predictCropRecommendation = async (req, res) => {
       throw new Error('Authentication required');
     }
     const userId = req.user.id;
+
     const result = await predictCrop(inputData);
     
     const prediction = new Prediction({

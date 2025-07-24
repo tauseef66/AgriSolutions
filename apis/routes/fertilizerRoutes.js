@@ -1,8 +1,7 @@
-
 const express = require('express');
-const { predictFertilizerRecommendation } = require('../controllers/fertilizerController');
-
 const router = express.Router();
+const { predictFertilizerRecommendation } = require('../controllers/fertilizerController');
+const authMiddleware = require('../middleware/auth');
 
 /**
  * @swagger
@@ -40,6 +39,6 @@ const router = express.Router();
  *       200:
  *         description: Fertilizer recommendation predicted successfully
  */
-router.post('/fertilizer', predictFertilizerRecommendation);
+router.post('/fertilizer', authMiddleware, predictFertilizerRecommendation);
 
 module.exports = router;
