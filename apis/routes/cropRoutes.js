@@ -1,11 +1,7 @@
 const express = require('express');
+const router = express.Router();
 const { predictCropRecommendation } = require('../controllers/cropController');
 const authMiddleware = require('../middleware/auth');
-
-const router = express.Router();
-
-// Protect all routes with authMiddleware
-// router.use(authMiddleware);
 
 /**
  * @swagger
@@ -37,6 +33,6 @@ const router = express.Router();
  *       200:
  *         description: Crop recommendation predicted successfully
  */
-router.post('/recommend', predictCropRecommendation);
+router.post('/recommend', authMiddleware, predictCropRecommendation);
 
 module.exports = router;

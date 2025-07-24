@@ -4,7 +4,6 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-// Protect all routes with authMiddleware
 router.use(authMiddleware);
 
 /**
