@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signup } from '../services/api';
+import { signup, googleLogin } from '../services/api';
+import { auth, googleProvider, signInWithPopup } from '../services/firebase';
 import { toast } from 'react-toastify';
 import { Button, TextField, Container, Typography, Box, Grid, Link } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -19,6 +21,19 @@ const Signup = () => {
       navigate('/home');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Signup failed');
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      const { token } = await googleLogin(idToken);
+      localStorage.setItem('token', token);
+      toast.success('Google signup successful!');
+      navigate('/home');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Google signup failed');
     }
   };
 
@@ -72,6 +87,15 @@ const Signup = () => {
             sx={{ mt: 3, mb: 2 }}
           >
             Sign Up
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignIn}
+            sx={{ mb: 2 }}
+          >
+            Sign Up with Google
           </Button>
           <Grid container justifyContent="flex-end">
             <Grid item>

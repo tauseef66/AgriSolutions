@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, googleLogin } from '../services/api';
+import { auth, googleProvider, signInWithPopup } from '../services/firebase';
 import { toast } from 'react-toastify';
 import { Button, TextField, Container, Typography, Box, Grid, Link } from '@mui/material';
-import { auth, googleProvider, signInWithPopup } from '../firebase';
 import GoogleIcon from '@mui/icons-material/Google';
 
 const Login = () => {
@@ -23,21 +23,16 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignIn = async () => {
     try {
-      // Sign in with Google using Firebase
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
-
-      // Send the ID token to the backend for verification
       const { token } = await googleLogin(idToken);
-
-      // Save the token and redirect to the home page
       localStorage.setItem('token', token);
       toast.success('Google login successful!');
       navigate('/home');
     } catch (error) {
-      toast.error('Google login failed: ' + error.message);
+      toast.error(error.response?.data?.message || 'Google login failed');
     }
   };
 
@@ -87,7 +82,7 @@ const Login = () => {
             fullWidth
             variant="outlined"
             startIcon={<GoogleIcon />}
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignIn}
             sx={{ mb: 2 }}
           >
             Login with Google
