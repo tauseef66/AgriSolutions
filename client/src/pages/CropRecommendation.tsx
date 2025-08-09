@@ -6,7 +6,7 @@ const CropRecommendation = () => {
   return (
     <DashboardLayout>
       <CropRecommendationForm />
-    </DashboardLayout>
+    </DashboardLayout> 
   );
 };
 

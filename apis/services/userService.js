@@ -19,4 +19,8 @@ const deleteUser = async (userId) => {
   await User.findByIdAndDelete(userId);
 };
 
-module.exports = { updateUser, deleteUser };
+const getAllUsers = async () => {
+  return await User.find();
+};
+
+module.exports = { updateUser, deleteUser, getAllUsers };
