@@ -50,16 +50,10 @@ export default function YieldPredictionResults({
                 </p>
               </div>
             </div>
-            
-            <div className="mt-6">
-              <h4 className="text-md font-medium mb-2">Prediction Confidence</h4>
-              <ConfidenceChart confidenceLevel={result.confidenceLevel} />
-            </div>
           </div>
           
           <div>
             <h3 className="text-lg font-semibold mb-4">Historical Comparison</h3>
-            <YieldChart chartData={chartData} />
             
             <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
               <h4 className="font-medium">Recommendations</h4>

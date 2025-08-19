@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/auth');
 
 /**
  * @swagger
- * /api/fertilizer/recommend:
+ * /api/fertilizer:
  *   post:
  *     summary: Predict fertilizer recommendation
  *     requestBody:

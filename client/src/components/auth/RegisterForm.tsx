@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { signup, googleLogin } from "@/services/api";
+import { auth, googleProvider, signInWithPopup } from "@/services/firebase";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -32,22 +33,44 @@ export default function RegisterForm() {
     }
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const { token } = await signup(name, email, password);
+      localStorage.setItem('token', token);
       toast({
         title: "Account created!",
         description: "You've successfully registered.",
         duration: 5000,
       });
-      
-      // Redirect to login
-      navigate('/login');
-    } catch (error) {
+      navigate('/dashboard');
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: "There was a problem with your registration.",
+        description: error.response?.data?.message || "There was a problem with your registration.",
+        duration: 5000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      const { token } = await googleLogin(idToken);
+      localStorage.setItem('token', token);
+      toast({
+        title: "Success!",
+        description: "Google signup successful!",
+        duration: 5000,
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error!",
+        description: error.response?.data?.message || "Google signup failed.",
         duration: 5000,
       });
     } finally {
@@ -110,6 +133,20 @@ export default function RegisterForm() {
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Create account"}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full border-agro-primary text-agro-primary hover:bg-agro-primary hover:text-white"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
+              />
+            </svg>
+            Sign up with Google
           </Button>
         </form>
       </CardContent>

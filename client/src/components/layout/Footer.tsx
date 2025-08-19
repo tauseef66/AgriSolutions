@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-semibold text-agro-dark mb-4">AgroBloom</h3>
+            <h3 className="font-semibold text-agro-dark mb-4">AgriSolutions</h3>
             <p className="text-sm text-muted-foreground">
               Empowering farmers with data-driven insights for better crop management
               and increased agricultural productivity.
@@ -99,7 +99,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-200 mt-8 pt-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} AgroBloom. All rights reserved.</p>
+          <p>&copy; {currentYear} AgriSolutions. All rights reserved.</p>
         </div>
       </div>
     </footer>

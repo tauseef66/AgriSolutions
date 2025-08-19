@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUserPredictions } = require('../controllers/predictionController');
+const { getUserPredictions,getAllPredictions } = require('../controllers/predictionController');
 const authMiddleware = require('../middleware/auth');
 
 /**
@@ -13,5 +13,16 @@ const authMiddleware = require('../middleware/auth');
  *         description: Predictions fetched successfully
  */
 router.get('/', authMiddleware, getUserPredictions);
+
+/**
+ * @swagger
+ * /api/predictions/all:
+ *   get:
+ *     summary: Get all predictions (admin)
+ *     responses:
+ *       200:
+ *         description: All predictions fetched successfully
+ */
+router.get('/all', authMiddleware, getAllPredictions);
 
 module.exports = router;

@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String },
   googleId: { type: String },
   createdAt: { type: Date, default: Date.now },
+  isAdmin: { type: Boolean, default: false }
 });
 
 userSchema.pre('save', async function (next) {

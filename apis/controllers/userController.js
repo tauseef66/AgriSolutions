@@ -1,52 +1,3 @@
-// const { updateUser, deleteUser } = require('../services/userService');
-// const User = require('../models/user'); // Import User model
-
-// const getUserDetails = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user.id).select('name email _id'); // Fetch user by ID from token
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-//     res.status(200).json({
-//       id: user._id,
-//       name: user.name,
-//       email: user.email,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-// const updateUserProfile = async (req, res) => {
-//   try {
-//     const updates = req.body;
-//     const user = await updateUser(req.user.id, updates);
-//     res.status(200).json(user);
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// };
-
-// const deleteUserProfile = async (req, res) => {
-//   try {
-//     const { userId } = req.params;
-//     await deleteUser(userId);
-//     res.status(204).send();
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// };
-
-// module.exports = { getUserDetails, updateUserProfile, deleteUserProfile };
-
-
-
-
-
-
-
-
-
 const { updateUser, deleteUser, getAllUsers } = require('../services/userService');
 const User = require('../models/user');
 
@@ -61,7 +12,6 @@ const getUserDetails = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Log the user data for debugging
     console.log('Fetched user:', user);
 
     res.status(200).json({

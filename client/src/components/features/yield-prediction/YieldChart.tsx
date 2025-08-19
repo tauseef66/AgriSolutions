@@ -6,7 +6,7 @@ interface YieldChartProps {
 }
 
 export default function YieldChart({ chartData }: YieldChartProps) {
-  // Custom component to render bars with different colors based on index
+
   const CustomBar = (props: any) => {
     const { fill, x, y, width, height, index } = props;
     const barFill = index === chartData.length - 1 ? "#2E7D32" : "#81C784";

@@ -25,8 +25,4 @@ const predictionSchema = new mongoose.Schema({
     }
 });
 
-// module.exports = mongoose.model('Prediction', predictionSchema);
-
-
-// Export singleton model, preventing redefinition
 module.exports = mongoose.models.Prediction || mongoose.model('Prediction', predictionSchema);

@@ -1,4 +1,3 @@
-
 import pickle
 import os
 import numpy as np
@@ -8,7 +7,6 @@ from datetime import datetime
 from sklearn.exceptions import DataConversionWarning
 import warnings
 
-# Suppress specific warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=DataConversionWarning)
 
@@ -130,11 +128,11 @@ if __name__ == "__main__":
         main()
     else:
         test_input = {
-            "N": 36,
-            "P": 43,
-            "K": 21,
-            "temperature": 28.36,
-            "humidity": 84.86,
+            "N": 45,
+            "P": 50,
+            "K": 23,
+            "temperature": 27.36,
+            "humidity": 83.86,
             "ph": 7.14,
             "rainfall": 52.93
         }

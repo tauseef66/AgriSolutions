@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -17,28 +17,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export const signup = async (name, email, password) => {
+export const signup = async (name: string, email: string, password: string) => {
   const response = await api.post('/api/auth/signup', { name, email, password });
   return response.data;
 };
 
-export const login = async (email, password) => {
+export const login = async (email: string, password: string) => {
   const response = await api.post('/api/auth/login', { email, password });
   return response.data;
 };
 
-export const googleLogin = async (idToken) => {
+export const googleLogin = async (idToken: string) => {
   const response = await api.post('/api/auth/google', { idToken });
-  return response.data;
-};
-
-export const updateProfile = async (updates) => {
-  const response = await api.put('/api/user/update', updates);
-  return response.data;
-};
-
-export const deleteProfile = async (userId) => {
-  const response = await api.delete(`/api/user/delete/${userId}`);
   return response.data;
 };
 

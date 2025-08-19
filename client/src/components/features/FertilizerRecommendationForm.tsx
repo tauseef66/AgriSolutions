@@ -1,47 +1,102 @@
-
-import { useState } from "react";
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2, BarChart3, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent,
+  ChartConfig 
+} from "@/components/ui/chart";
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { CheckCircle } from "lucide-react";
+import axios from 'axios';
 
+// Configure axios instance
+const api = axios.create({
+  baseURL: 'http://localhost:5000',
+});
+
+// Add auth interceptor
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interfaces
 interface FertilizerRecommendation {
-  name: string;
-  composition: string;
-  application: string;
-  amountPerHectare: string;
-  timing: string;
-  method: string;
-  costEstimate: string;
-  benefits: string[];
-  precautions: string[];
+  prediction: string;
+  remark: string;
+  confidence: number;
+}
+
+interface FormData {
+  temperature: string;
+  moisture: string;
+  rainfall: string;
+  ph: string;
+  soilN: string;
+  soilP: string;
+  soilK: string;
+  carbon: string;
+  soilType: string;
+  cropName: string;
 }
 
 export default function FertilizerRecommendationForm() {
-  const [crop, setCrop] = useState("rice");
-  const [soilType, setSoilType] = useState("loamy");
-  const [soilPh, setSoilPh] = useState("");
-  const [nitrogen, setNitrogen] = useState("");
-  const [phosphorus, setPhosphorus] = useState("");
-  const [potassium, setPotassium] = useState("");
-  const [organicMatter, setOrganicMatter] = useState("");
-  const [area, setArea] = useState("");
-  const [growthStage, setGrowthStage] = useState("sowing");
-  const [previousFertilizer, setPreviousFertilizer] = useState("none");
-  const [isLoading, setIsLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState<FertilizerRecommendation | null>(null);
-  const [schedule, setSchedule] = useState<{ stage: string; time: string; fertilizer: string; amount: string }[]>([]);
   const { toast } = useToast();
 
+  const [formData, setFormData] = useState<FormData>({
+    temperature: '',
+    moisture: '',
+    rainfall: '',
+    ph: '',
+    soilN: '',
+    soilP: '',
+    soilK: '',
+    carbon: '',
+    soilType: '',
+    cropName: ''
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<FertilizerRecommendation | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Chart data for nutrient levels
+  const chartData = result ? [
+    { name: 'Nitrogen', value: Math.min(parseFloat(formData.soilN || '0'), 200) },
+    { name: 'Phosphorus', value: Math.min(parseFloat(formData.soilP || '0'), 150) },
+    { name: 'Potassium', value: Math.min(parseFloat(formData.soilK || '0'), 300) },
+    { name: 'Carbon', value: Math.min(parseFloat(formData.carbon || '0'), 205) }
+  ] : [];
+
+  // Chart configuration
+  const chartConfig = {
+    value: {
+      label: 'Level (ppm)',
+      color: 'hsl(var(--chart-1))',
+    },
+  } satisfies ChartConfig;
+
+  // Handle form input changes
+  const handleChange = (key: keyof FormData, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!crop || !soilType || !soilPh || !nitrogen || !phosphorus || !potassium || !area) {
+
+    // Validate form inputs
+    const { temperature, moisture, rainfall, ph, soilN, soilP, soilK, carbon, soilType, cropName } = formData;
+    if (!temperature || !moisture || !rainfall || !ph || !soilN || !soilP || !soilK || !carbon || !soilType || !cropName) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -49,425 +104,425 @@ export default function FertilizerRecommendationForm() {
       });
       return;
     }
-    
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call to ML model
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock data - in a real app, this would come from the ML service
-      const mockRecommendation: FertilizerRecommendation = {
-        name: "NPK 14-14-14 Complex Fertilizer",
-        composition: "14% Nitrogen, 14% Phosphate, 14% Potash",
-        application: "200 kg/ha split into 3 applications",
-        amountPerHectare: "200 kg",
-        timing: "First application at sowing, second at tillering, third at heading",
-        method: "Broadcast application 5cm below soil surface",
-        costEstimate: "$120-150 per hectare",
-        benefits: [
-          "Balanced nutrition for steady growth throughout season",
-          "Improved yield by 15-20%",
-          "Enhanced root development and drought resistance",
-          "Improved grain quality and protein content"
-        ],
-        precautions: [
-          "Avoid application before heavy rainfall",
-          "Keep fertilizer away from direct seed contact",
-          "Use protective equipment during application",
-          "Follow recommended doses to avoid over-fertilization"
-        ]
-      };
-      
-      const mockSchedule = [
-        { 
-          stage: "Land preparation", 
-          time: "1-2 weeks before sowing", 
-          fertilizer: "Organic compost", 
-          amount: "5 tons/ha" 
-        },
-        { 
-          stage: "Sowing", 
-          time: "At sowing", 
-          fertilizer: "NPK 14-14-14", 
-          amount: "70 kg/ha" 
-        },
-        { 
-          stage: "Vegetative growth", 
-          time: "30 days after sowing", 
-          fertilizer: "NPK 14-14-14", 
-          amount: "70 kg/ha" 
-        },
-        { 
-          stage: "Reproductive stage", 
-          time: "60 days after sowing", 
-          fertilizer: "NPK 14-14-14", 
-          amount: "60 kg/ha" 
-        },
-        { 
-          stage: "Post-harvest", 
-          time: "After harvesting", 
-          fertilizer: "Green manure", 
-          amount: "As available" 
-        }
-      ];
-      
-      setRecommendation(mockRecommendation);
-      setSchedule(mockSchedule);
-      
-      toast({
-        title: "Analysis complete",
-        description: "Fertilizer recommendations are ready",
-      });
-    } catch (error) {
+
+    const temperatureNum = parseFloat(temperature);
+    const moistureNum = parseFloat(moisture);
+    const rainfallNum = parseFloat(rainfall);
+    const phNum = parseFloat(ph);
+    const soilNNum = parseFloat(soilN);
+    const soilPNum = parseFloat(soilP);
+    const soilKNum = parseFloat(soilK);
+    const carbonNum = parseFloat(carbon);
+
+    if (isNaN(temperatureNum) || temperatureNum < -10 || temperatureNum > 50) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to get recommendations. Please try again.",
+        description: "Temperature must be between -10 and 50°C",
+      });
+      return;
+    }
+    if (isNaN(moistureNum) || moistureNum < 0 || moistureNum > 1) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Moisture must be between 0 and 1",
+      });
+      return;
+    }
+    if (isNaN(rainfallNum) || rainfallNum < 0 || rainfallNum > 5000) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Rainfall must be between 0 and 5000 mm",
+      });
+      return;
+    }
+    if (isNaN(phNum) || phNum < 0 || phNum > 14) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Soil pH must be between 0 and 14",
+      });
+      return;
+    }
+    if (isNaN(soilNNum) || soilNNum < 0 || soilNNum > 200) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Nitrogen must be between 0 and 200 ppm",
+      });
+      return;
+    }
+    if (isNaN(soilPNum) || soilPNum < 0 || soilPNum > 150) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Phosphorus must be between 0 and 150 ppm",
+      });
+      return;
+    }
+    if (isNaN(soilKNum) || soilKNum < 0 || soilKNum > 300) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Potassium must be between 0 and 300 ppm",
+      });
+      return;
+    }
+    if (isNaN(carbonNum) || carbonNum < 1 || carbonNum > 205) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Carbon must be between 1 and 205 ppm",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const requestBody = {
+      Temperature: temperatureNum,
+      Moisture: moistureNum,
+      Rainfall: rainfallNum,
+      PH: phNum,
+      Nitrogen: soilNNum,
+      Phosphorous: soilPNum,
+      Potassium: soilKNum,
+      Carbon: carbonNum,
+      Soil: soilType,
+      Crop: cropName
+    };
+
+    try {
+      const response = await api.post('/api/fertilizer', requestBody);
+
+      if (!response.data || !response.data.fertilizer) {
+        throw new Error('Invalid response format from server');
+      }
+
+      setResult(response.data.fertilizer);
+
+      toast({
+        title: "Recommendation Complete",
+        description: `Recommended fertilizer: ${response.data.fertilizer.prediction}`,
+      });
+
+      setTimeout(() => {
+        document.getElementById('fertilizerResult')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'An error occurred while fetching the recommendation. Please try again.';
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle form reset
   const handleReset = () => {
-    setCrop("rice");
-    setSoilType("loamy");
-    setSoilPh("");
-    setNitrogen("");
-    setPhosphorus("");
-    setPotassium("");
-    setOrganicMatter("");
-    setArea("");
-    setGrowthStage("sowing");
-    setPreviousFertilizer("none");
-    setRecommendation(null);
-    setSchedule([]);
+    setFormData({
+      temperature: '',
+      moisture: '',
+      rainfall: '',
+      ph: '',
+      soilN: '',
+      soilP: '',
+      soilK: '',
+      carbon: '',
+      soilType: '',
+      cropName: ''
+    });
+    setResult(null);
+    setError(null);
   };
 
   return (
     <div className="space-y-6">
-      <Card className="agro-card-shadow">
-        <CardHeader>
-          <CardTitle>Fertilizer Recommendation</CardTitle>
-          <CardDescription>
-            Get personalized fertilizer recommendations based on soil tests and crop requirements
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="crop">Crop Type</Label>
-                <Select value={crop} onValueChange={setCrop}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select crop type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rice">Rice</SelectItem>
-                    <SelectItem value="wheat">Wheat</SelectItem>
-                    <SelectItem value="maize">Maize</SelectItem>
-                    <SelectItem value="cotton">Cotton</SelectItem>
-                    <SelectItem value="sugarcane">Sugarcane</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="soilType">Soil Type</Label>
-                <Select value={soilType} onValueChange={setSoilType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select soil type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="loamy">Loamy</SelectItem>
-                    <SelectItem value="sandy">Sandy</SelectItem>
-                    <SelectItem value="clayey">Clayey</SelectItem>
-                    <SelectItem value="silty">Silty</SelectItem>
-                    <SelectItem value="peaty">Peaty</SelectItem>
-                    <SelectItem value="chalky">Chalky</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="soilPh">Soil pH</Label>
-                <Input
-                  id="soilPh"
-                  type="number"
-                  step="0.1"
-                  placeholder="e.g. 6.5"
-                  value={soilPh}
-                  onChange={(e) => setSoilPh(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="nitrogen">Nitrogen Content (ppm)</Label>
-                <Input
-                  id="nitrogen"
-                  type="number"
-                  placeholder="e.g. 40"
-                  value={nitrogen}
-                  onChange={(e) => setNitrogen(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phosphorus">Phosphorus Content (ppm)</Label>
-                <Input
-                  id="phosphorus"
-                  type="number"
-                  placeholder="e.g. 35"
-                  value={phosphorus}
-                  onChange={(e) => setPhosphorus(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="potassium">Potassium Content (ppm)</Label>
-                <Input
-                  id="potassium"
-                  type="number"
-                  placeholder="e.g. 200"
-                  value={potassium}
-                  onChange={(e) => setPotassium(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="organicMatter">Organic Matter (%)</Label>
-                <Input
-                  id="organicMatter"
-                  type="number"
-                  step="0.1"
-                  placeholder="e.g. 2.5"
-                  value={organicMatter}
-                  onChange={(e) => setOrganicMatter(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="area">Field Area (hectares)</Label>
-                <Input
-                  id="area"
-                  type="number"
-                  step="0.01"
-                  placeholder="e.g. 5"
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="growthStage">Current Growth Stage</Label>
-                <Select value={growthStage} onValueChange={setGrowthStage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select growth stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sowing">Sowing/Planting</SelectItem>
-                    <SelectItem value="vegetative">Vegetative Growth</SelectItem>
-                    <SelectItem value="flowering">Flowering</SelectItem>
-                    <SelectItem value="fruiting">Fruiting/Grain Filling</SelectItem>
-                    <SelectItem value="maturity">Maturity</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="previousFertilizer">Previous Fertilizer Used</Label>
-                <Select value={previousFertilizer} onValueChange={setPreviousFertilizer}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select previous fertilizer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="npk">NPK Complex</SelectItem>
-                    <SelectItem value="urea">Urea</SelectItem>
-                    <SelectItem value="dap">DAP</SelectItem>
-                    <SelectItem value="organic">Organic/Compost</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={handleReset} type="button">Reset</Button>
-              <Button type="submit" disabled={isLoading} className="bg-agro-primary hover:bg-agro-dark">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : "Get Recommendations"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-      
-      {recommendation && (
-        <Card className="agro-card-shadow">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form Section */}
+        <Card className="lg:col-span-2 agro-card-shadow">
           <CardHeader>
-            <CardTitle>Fertilizer Recommendations</CardTitle>
-            <CardDescription>For {crop.charAt(0).toUpperCase() + crop.slice(1)} on {soilType} soil</CardDescription>
+            <CardTitle>Fertilizer Recommendation</CardTitle>
+            <CardDescription>
+              Enter soil and environmental data to get personalized fertilizer recommendations
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">Primary Recommendation</h3>
-                    <div className="mt-4 p-4 bg-green-50 border border-green-100 rounded-lg">
-                      <div className="flex items-center">
-                        <div className="h-16 w-16 rounded-full bg-agro-light flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-agro-primary">
-                            <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 0 1-2 2Z" />
-                            <path d="M6 3v10a2 2 0 0 0 2 2h12" />
-                            <path d="M5 3a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z" />
-                          </svg>
-                        </div>
-                        <div className="ml-4">
-                          <h3 className="font-semibold text-xl text-agro-dark">{recommendation.name}</h3>
-                          <p className="text-sm text-muted-foreground">{recommendation.composition}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Recommended Application</Label>
-                    <div className="font-medium">{recommendation.application}</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Amount per Hectare</Label>
-                    <div className="font-medium">{recommendation.amountPerHectare}</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Total Required</Label>
-                    <div className="font-medium">
-                      {(parseFloat(recommendation.amountPerHectare) * parseFloat(area)).toFixed(1)} kg
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Timing of Application</Label>
-                    <div className="font-medium">{recommendation.timing}</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Application Method</Label>
-                    <div className="font-medium">{recommendation.method}</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground">Cost Estimate</Label>
-                    <div className="font-medium">{recommendation.costEstimate}</div>
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Temperature */}
+                <div className="space-y-2">
+                  <Label htmlFor="temperature">Temperature (°C)</Label>
+                  <Input
+                    id="temperature"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 25"
+                    value={formData.temperature}
+                    onChange={(e) => handleChange('temperature', e.target.value)}
+                    required
+                    min="-10"
+                    max="50"
+                  />
                 </div>
-                
-                <Separator className="my-6" />
-                
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">Benefits</h3>
-                  <ul className="space-y-2">
-                    {recommendation.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle className="h-5 w-5 text-agro-primary mr-2 flex-shrink-0" />
-                        <span className="text-sm">{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                {/* Moisture */}
+                <div className="space-y-2">
+                  <Label htmlFor="moisture">Moisture</Label>
+                  <Input
+                    id="moisture"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 0.5"
+                    value={formData.moisture}
+                    onChange={(e) => handleChange('moisture', e.target.value)}
+                    required
+                    min="0"
+                    max="1"
+                  />
                 </div>
-                
-                <div className="mt-6">
-                  <h3 className="font-semibold text-lg mb-3">Precautions</h3>
-                  <ul className="space-y-2">
-                    {recommendation.precautions.map((precaution, index) => (
-                      <li key={index} className="flex items-start">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 mr-2 flex-shrink-0">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="8" x2="12" y2="12" />
-                          <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        <span className="text-sm">{precaution}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                {/* Rainfall */}
+                <div className="space-y-2">
+                  <Label htmlFor="rainfall">Rainfall (mm)</Label>
+                  <Input
+                    id="rainfall"
+                    type="number"
+                    placeholder="e.g. 1500"
+                    value={formData.rainfall}
+                    onChange={(e) => handleChange('rainfall', e.target.value)}
+                    required
+                    min="0"
+                    max="5000"
+                  />
+                </div>
+
+                {/* Soil pH */}
+                <div className="space-y-2">
+                  <Label htmlFor="ph">Soil pH</Label>
+                  <Input
+                    id="ph"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 6.5"
+                    value={formData.ph}
+                    onChange={(e) => handleChange('ph', e.target.value)}
+                    required
+                    min="0"
+                    max="14"
+                  />
+                </div>
+
+                {/* Nitrogen */}
+                <div className="space-y-2">
+                  <Label htmlFor="soilN">Nitrogen (ppm)</Label>
+                  <Input
+                    id="soilN"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 40"
+                    value={formData.soilN}
+                    onChange={(e) => handleChange('soilN', e.target.value)}
+                    required
+                    min="0"
+                    max="200"
+                  />
+                </div>
+
+                {/* Phosphorus */}
+                <div className="space-y-2">
+                  <Label htmlFor="soilP">Phosphorus (ppm)</Label>
+                  <Input
+                    id="soilP"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 35"
+                    value={formData.soilP}
+                    onChange={(e) => handleChange('soilP', e.target.value)}
+                    required
+                    min="0"
+                    max="150"
+                  />
+                </div>
+
+                {/* Potassium */}
+                <div className="space-y-2">
+                  <Label htmlFor="soilK">Potassium (ppm)</Label>
+                  <Input
+                    id="soilK"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 200"
+                    value={formData.soilK}
+                    onChange={(e) => handleChange('soilK', e.target.value)}
+                    required
+                    min="0"
+                    max="300"
+                  />
+                </div>
+
+                {/* Carbon */}
+                <div className="space-y-2">
+                  <Label htmlFor="carbon">Carbon (ppm)</Label>
+                  <Input
+                    id="carbon"
+                    type="number"
+                    placeholder="e.g. 50"
+                    value={formData.carbon}
+                    onChange={(e) => handleChange('carbon', e.target.value)}
+                    required
+                    min="1"
+                    max="205"
+                  />
+                </div>
+
+                {/* Soil Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="soilType">Soil Type</Label>
+                  <Select
+                    value={formData.soilType}
+                    onValueChange={(value) => handleChange('soilType', value)}
+                    required
+                  >
+                    <SelectTrigger id="soilType">
+                      <SelectValue placeholder="Select soil type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Loamy Soil">Loamy Soil</SelectItem>
+                      <SelectItem value="Peaty Soil">Peaty Soil</SelectItem>
+                      <SelectItem value="Acidic Soil">Acidic Soil</SelectItem>
+                      <SelectItem value="Neutral Soil">Neutral Soil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Crop Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="cropName">Crop Name</Label>
+                  <Select
+                    value={formData.cropName}
+                    onValueChange={(value) => handleChange('cropName', value)}
+                    required
+                  >
+                    <SelectTrigger id="cropName">
+                      <SelectValue placeholder="Select crop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rice">Rice</SelectItem>
+                      <SelectItem value="wheat">Wheat</SelectItem>
+                      <SelectItem value="pomegranate">Pomegranate</SelectItem>
+                      <SelectItem value="watermelon">Watermelon</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Application Schedule</h3>
-                <div className="relative">
-                  {/* Vertical line */}
-                  <div className="absolute left-3 top-3 w-0.5 h-[calc(100%-24px)] bg-gray-200"></div>
-                  
-                  <div className="space-y-6">
-                    {schedule.map((item, index) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-agro-primary text-white z-10">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 pl-2">
-                          <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            <div className="font-medium">{item.stage}</div>
-                            <div className="text-sm text-muted-foreground">{item.time}</div>
-                            <div className="flex justify-between items-center mt-3">
-                              <div>
-                                <div className="text-sm font-medium">{item.fertilizer}</div>
-                                <div className="text-xs text-muted-foreground">{item.amount}</div>
-                              </div>
-                              <Button variant="outline" size="sm" className="text-xs py-1 h-7 text-agro-primary border-agro-primary/50 hover:bg-agro-light/20">
-                                Details
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mt-8 p-4 bg-orange-50 rounded-lg border border-orange-100">
-                  <h3 className="font-medium flex items-center text-agro-dark">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 mr-2">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                    Additional Recommendations
-                  </h3>
-                  <ul className="mt-2 space-y-2 text-sm">
-                    <li className="flex items-start">
-                      <svg className="h-4 w-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>Consider supplementing with micronutrients - Zinc and Boron are low in your soil.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <svg className="h-4 w-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>Your soil pH is slightly acidic. Consider adding agricultural lime at a rate of 1 ton/ha.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <svg className="h-4 w-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>Increase organic matter content by incorporating crop residues or applying compost.</span>
-                    </li>
-                  </ul>
-                </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={handleReset}>
+                  Reset
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      Get Recommendation
+                    </>
+                  )}
+                </Button>
               </div>
-            </div>
+            </form>
           </CardContent>
-          <CardFooter className="text-sm text-muted-foreground">
-            Recommendations are based on soil test results, crop requirements, and local conditions.
-          </CardFooter>
         </Card>
-      )}
+
+        {/* Right Side Column */}
+        <div className="space-y-6">
+          {/* Result Card */}
+          {result && !error && (
+            <Card id="fertilizerResult" className="border-accent shadow-medium">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-accent" />
+                  <span>Fertilizer Recommendation</span>
+                </CardTitle>
+                <CardDescription>For {formData.cropName} on {formData.soilType}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-100 rounded-lg">
+                  <h3 className="font-semibold text-xl">{result.prediction}</h3>
+                  <p className="text-sm text-muted-foreground">{result.remark}</p>
+                  <p className="text-sm font-medium mt-2">Confidence: {(result.confidence * 100).toFixed(1)}%</p>
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Error Card */}
+          {error && (
+            <Card id="fertilizerResult" className="border-destructive shadow-medium">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Info className="h-5 w-5 text-destructive" />
+                  <span>Error</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-destructive">{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setError(null)}
+                >
+                  Try Again
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Analysis Factors Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Info className="h-5 w-5 text-blue-600" />
+                <span>Analysis Factors</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>Our model analyzes:</p>
+              <ul className="space-y-1 ml-4 list-disc">
+                <li>Temperature and moisture levels</li>
+                <li>Rainfall patterns</li>
+                <li>Soil pH and nutrient levels (N, P, K, C)</li>
+                <li>Soil type and crop requirements</li>
+              </ul>
+              <p>Based on machine learning models trained on fertilizer effectiveness data.</p>
+            </CardContent>
+          </Card>
+
+          {/* Sample Data Alert */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Sample values:</strong> Temperature: 25°C, Moisture: 10, Rainfall: 1500 mm, 
+              Soil pH: 6.5, Nitrogen: 40 ppm, Phosphorus: 35 ppm, Potassium: 200 ppm, 
+              Carbon: 50 ppm, Soil Type: Loamy Soil, Crop: Rice
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
     </div>
   );
 }

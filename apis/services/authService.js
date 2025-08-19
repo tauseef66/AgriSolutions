@@ -37,7 +37,8 @@ const login = async (email, password) => {
     throw new Error('Invalid credentials');
   }
 
-  return generateToken(user._id);
+  const token = generateToken(user._id, user.isAdmin);
+  return { token, isAdmin: user.isAdmin };
 };
 
 const googleLogin = async (idToken) => {

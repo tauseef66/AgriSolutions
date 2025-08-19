@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
-require('dotenv').config(); // ⬅ Add this line
-console.log('PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY);
+require('dotenv').config();
 const serviceAccount = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,

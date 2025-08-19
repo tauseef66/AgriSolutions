@@ -13,8 +13,8 @@ const signupUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const token = await login(email, password);
-    res.status(200).json({ token });
+    const { token, isAdmin } = await login(email, password);
+    res.status(200).json({ token, isAdmin });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
